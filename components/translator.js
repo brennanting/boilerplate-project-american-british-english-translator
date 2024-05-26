@@ -29,17 +29,17 @@ const britArr = [
 const britObj = Object.fromEntries(britArr);
 
 class Translator {
-  translate(inputtext, sourcelang) {
+  translate(inputtext, direction) {
     let refObj = {};
     let timeTest = "";
     let timeSign = "";
     let timeModifier = "";
-    if (sourcelang == "us") {
+    if (direction == "american-to-british") {
       refObj = amerObj;
       timeTest = /\d{1,2}:\d{2}/;
       timeSign = ":";
       timeModifier = ".";
-    } else if (sourcelang == "uk") {
+    } else if (direction == "british-to-american") {
       refObj = britObj;
       timeTest = /\d{1,2}.\d{2}/;
       timeSign = ".";
@@ -122,7 +122,7 @@ class Translator {
 
     // if nothing translated set text to looks good
     if (!anyChanges) {
-      return {text: inputtext, translation: 'Everything looks good to me!'}
+      return('Everything looks good to me!')
     }
     // join back text
     let outputtext = modifArr.join(" ");
@@ -130,7 +130,7 @@ class Translator {
       return match.trim();
     });
     // return text
-    return {text: inputtext, translation: outputtext};
+    return outputtext;
   }
 }
 

@@ -8,13 +8,18 @@ module.exports = function (app) {
 
   app.route('/api/translate')
     .post((req, res) => {
-      
+      let text = req.body.text;
+      let locale = req.body.locale;
+      if ( text == undefined || !locale) {
+        return res.send({ error: 'Required field(s) missing' });
+      }
+      if ( !text ) {
+        return res.send({ error: 'No text to translate' })
+      }
+      if (locale != 'american-to-british' && locale != 'british-to-american') {
+        return res.send({ error: 'Invalid value for locale field' })
+      }
+      let translatedtext = translator.translate(text, locale);
+      return res.send({ text, translation: translatedtext })
     });
-
-  app.route('/api/test')
-    .get((req, res) => {
-      console.log(translator.translate('Bicky had a bicky then went to the chippy at 7.30.', 'uk'));
-      console.log(translator.translate('I made some self-rising flour and a rube goldberg device during spring break', 'us'))
-    })
-  
 };
