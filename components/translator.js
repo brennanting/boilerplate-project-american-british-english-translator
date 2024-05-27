@@ -48,6 +48,11 @@ class Translator {
       return false;
     }
 
+    // Need to change this system
+    // Ideal behaviour:
+    // Time (e.g. 12.30) => keep as one cell
+    // Titles (e.g. Dr.) => keep as one cell
+    // Normal punctuation => don't keep
     let modiftext = inputtext.replace(/.?[^\w\s-]+(..)?/g, (match) => {
       if (timeTest.test(match)) {
         return match;
@@ -57,7 +62,14 @@ class Translator {
       });
     });
 
-    let textArr = modiftext.split(" ");
+    let modiftext2 = modiftext.replace(
+      /(mr|mrs|ms|mx|dr|prof)\s\./gi,
+      (match) => {
+        return match.split(" ").join("");
+      },
+    );
+
+    let textArr = modiftext2.split(" ");
     let modifArr = [];
     let anyChanges = false;
 
@@ -69,13 +81,12 @@ class Translator {
       if (modifArr[i]) {
         continue;
       } else {
-        let nextTest = word.toLowerCase()
         // check if it matches time
-        if (timeTest.test(nextTest)) {
+        if (timeTest.test(word)) {
           // make modification
           let strtopush =
             '<span class="highlight">' +
-            nextTest.replace(timeSign, timeModifier) +
+            word.replace(timeSign, timeModifier) +
             "</span>";
           modifArr.push(strtopush);
 
@@ -83,46 +94,54 @@ class Translator {
           anyChanges = true;
 
           // if not check if it is in source obj
-        } else if (refObj.hasOwnProperty(nextTest)) {
-          // make modification
-          let strtopush = '<span class="highlight">' + refObj[nextTest] + "</span>";
-          modifArr.push(strtopush);
-          // set something translated to true
-          anyChanges = true;
-          // if not check if it plus the next word is in source
         } else {
-          nextTest = nextTest + " " + textArr[i + 1];
-          nextTest = nextTest.toLowerCase();
+          let nextTest = textArr
+            .slice(i, i + 3)
+            .join(" ")
+            .toLowerCase();
           if (refObj.hasOwnProperty(nextTest)) {
             // change
             modifArr.push(
               "<span",
-              'class="highlight">' + refObj[nextTest] + "</span>",
+              'class="highlight">' + refObj[nextTest] + "<",
+              "/span>",
             );
             // set true
             anyChanges = true;
           } else {
-            // if not check if it plus the next 2 words is in source
-            nextTest = nextTest + ' ' + textArr[i + 2];
-            nextTest = nextTest.toLowerCase();
+            nextTest = textArr
+              .slice(i, i + 2)
+              .join(" ")
+              .toLowerCase();
             if (refObj.hasOwnProperty(nextTest)) {
               // change
-              modifArr.push("<span", 'class="highlight">' + refObj[nextTest] + '<' + '/span>')
+              modifArr.push(
+                "<span",
+                'class="highlight">' + refObj[nextTest] + "</span>",
+              );
               // set true
               anyChanges = true;
+            } else if (refObj.hasOwnProperty(word.toLowerCase())) {
+              // make modification
+              let strtopush =
+                '<span class="highlight">' +
+                refObj[word.toLowerCase()] +
+                "</span>";
+              modifArr.push(strtopush);
+              // set something translated to true
+              anyChanges = true;
+              // if not check if it plus the next word is in source
             } else {
               modifArr.push(word);
             }
           }
         }
-
-        
       }
     }
 
     // if nothing translated set text to looks good
     if (!anyChanges) {
-      return('Everything looks good to me!')
+      return "Everything looks good to me!";
     }
     // join back text
     let outputtext = modifArr.join(" ");
